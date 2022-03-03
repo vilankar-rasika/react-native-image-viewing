@@ -6,15 +6,15 @@
  *
  */
 
-import React, { ComponentType, useCallback, useEffect } from "react";
+import React, { ComponentType, useCallback, useEffect, useState } from "react";
 import {
   Animated,
-  Dimensions,
   StyleSheet,
   View,
   VirtualizedList,
   ModalProps,
   Modal,
+  SafeAreaView
 } from "react-native";
 
 import ImageItem from "./components/ImageItem/ImageItem";
@@ -24,7 +24,7 @@ import StatusBarManager from "./components/StatusBarManager";
 import useAnimatedComponents from "./hooks/useAnimatedComponents";
 import useImageIndexChange from "./hooks/useImageIndexChange";
 import useRequestClose from "./hooks/useRequestClose";
-import { ImageSource } from "./@types";
+import { Dimensions, ImageSource } from "./@types";
 
 type Props = {
   images: ImageSource[];
@@ -42,13 +42,13 @@ type Props = {
   delayLongPress?: number;
   HeaderComponent?: ComponentType<{ imageIndex: number }>;
   FooterComponent?: ComponentType<{ imageIndex: number }>;
+  headerStyle: any;
+  footerStyle: any;
 };
 
 const DEFAULT_ANIMATION_TYPE = "fade";
 const DEFAULT_BG_COLOR = "#000";
 const DEFAULT_DELAY_LONG_PRESS = 800;
-const SCREEN = Dimensions.get("screen");
-const SCREEN_WIDTH = SCREEN.width;
 
 function ImageViewing({
   images,
@@ -56,7 +56,7 @@ function ImageViewing({
   imageIndex,
   visible,
   onRequestClose,
-  onLongPress = () => {},
+  onLongPress = () => { },
   onImageIndexChange,
   animationType = DEFAULT_ANIMATION_TYPE,
   backgroundColor = DEFAULT_BG_COLOR,
@@ -66,10 +66,15 @@ function ImageViewing({
   delayLongPress = DEFAULT_DELAY_LONG_PRESS,
   HeaderComponent,
   FooterComponent,
+  headerStyle,
+  footerStyle
+
 }: Props) {
   const imageList = React.createRef<VirtualizedList<ImageSource>>();
   const [opacity, onRequestCloseEnhanced] = useRequestClose(onRequestClose);
-  const [currentImageIndex, onScroll] = useImageIndexChange(imageIndex, SCREEN);
+  const [layout, setLayout] = React.useState<Dimensions>({ width: 0, height: 0 });
+  const [currentImageIndex, onScroll] = useImageIndexChange(imageIndex, layout);
+  const [hideStatusBar, setHideStatusBar] = useState(true);
   const [
     headerTransform,
     footerTransform,
@@ -102,22 +107,39 @@ function ImageViewing({
       presentationStyle={presentationStyle}
       animationType={animationType}
       onRequestClose={onRequestCloseEnhanced}
-      supportedOrientations={["portrait"]}
+      supportedOrientations={["portrait", "portrait-upside-down", "landscape", "landscape-left", "landscape-right"]}
       hardwareAccelerated
     >
       <StatusBarManager presentationStyle={presentationStyle} />
-      <View style={[styles.container, { opacity, backgroundColor }]}>
-        <Animated.View style={[styles.header, { transform: headerTransform }]}>
-          {typeof HeaderComponent !== "undefined"
-            ? (
-              React.createElement(HeaderComponent, {
-                imageIndex: currentImageIndex,
-              })
-            )
-            : (
-              <ImageDefaultHeader onRequestClose={onRequestCloseEnhanced} />
-            )}
-        </Animated.View>
+      <View
+        style={[styles.container, { opacity, backgroundColor }]}
+        onLayout={(e) => {
+          setLayout(e.nativeEvent.layout);
+        }}
+      >
+        <SafeAreaView
+          style={[
+            styles.header,
+            {
+              backgroundColor: 'transparent',
+            },
+            headerStyle
+          ]}
+        >
+          {hideStatusBar ?
+            <Animated.View style={[{ transform: headerTransform }]}>
+              {typeof HeaderComponent !== "undefined"
+                ? (
+                  React.createElement(HeaderComponent, {
+                    imageIndex: currentImageIndex,
+                  })
+                )
+                : (
+                  <ImageDefaultHeader onRequestClose={onRequestCloseEnhanced} />
+                )}
+            </Animated.View>
+            : null}
+        </SafeAreaView>
         <VirtualizedList
           ref={imageList}
           data={images}
@@ -132,8 +154,8 @@ function ImageViewing({
           getItem={(_, index) => images[index]}
           getItemCount={() => images.length}
           getItemLayout={(_, index) => ({
-            length: SCREEN_WIDTH,
-            offset: SCREEN_WIDTH * index,
+            length: layout.width,
+            offset: layout.width * index,
             index,
           })}
           renderItem={({ item: imageSrc }) => (
@@ -142,24 +164,31 @@ function ImageViewing({
               imageSrc={imageSrc}
               onRequestClose={onRequestCloseEnhanced}
               onLongPress={onLongPress}
+              handleImageClick={() => { setHideStatusBar(!hideStatusBar) }}
               delayLongPress={delayLongPress}
               swipeToCloseEnabled={swipeToCloseEnabled}
               doubleTapToZoomEnabled={doubleTapToZoomEnabled}
+              layout={layout ? layout : { width: 0, height: 0 }}
             />
           )}
           onMomentumScrollEnd={onScroll}
           //@ts-ignore
           keyExtractor={(imageSrc, index) => keyExtractor ? keyExtractor(imageSrc, index) : imageSrc.uri || `${imageSrc}`}
         />
-        {typeof FooterComponent !== "undefined" && (
-          <Animated.View
-            style={[styles.footer, { transform: footerTransform }]}
-          >
-            {React.createElement(FooterComponent, {
-              imageIndex: currentImageIndex,
-            })}
-          </Animated.View>
-        )}
+        {hideStatusBar ?
+          <SafeAreaView
+            style={[styles.footer, footerStyle]}>
+            {typeof FooterComponent !== "undefined" && (
+              <Animated.View
+                style={[{ transform: footerTransform }]}
+              >
+                {React.createElement(FooterComponent, {
+                  imageIndex: currentImageIndex,
+                })}
+              </Animated.View>
+            )}
+          </SafeAreaView>
+          : null}
       </View>
     </Modal>
   );
@@ -171,16 +200,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
   },
   header: {
-    position: "absolute",
-    width: "100%",
-    zIndex: 1,
+    position: 'absolute',
     top: 0,
+    left: 0,
+    zIndex: 100,
+    height: 40,
+    width: '100%',
   },
   footer: {
-    position: "absolute",
-    width: "100%",
-    zIndex: 1,
+    position: 'absolute',
     bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
   },
 });
 

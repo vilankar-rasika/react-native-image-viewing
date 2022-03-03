@@ -100,6 +100,10 @@ function ImageViewing({
     return null;
   }
 
+  const handleImageClick = ()=>{
+    setHideStatusBar(!hideStatusBar);
+  }
+
   return (
     <Modal
       transparent={presentationStyle === "overFullScreen"}
@@ -164,7 +168,7 @@ function ImageViewing({
               imageSrc={imageSrc}
               onRequestClose={onRequestCloseEnhanced}
               onLongPress={onLongPress}
-              handleImageClick={() => { setHideStatusBar(!hideStatusBar) }}
+              handleImageClick={handleImageClick}
               delayLongPress={delayLongPress}
               swipeToCloseEnabled={swipeToCloseEnabled}
               doubleTapToZoomEnabled={doubleTapToZoomEnabled}

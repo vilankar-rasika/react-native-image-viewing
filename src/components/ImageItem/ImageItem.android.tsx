@@ -21,7 +21,7 @@ import usePanResponder from "../../hooks/usePanResponder";
 
 import { getImageStyles, getImageTransform } from "../../utils";
 import { ImageSource, Dimensions } from "../../@types";
-import { ImageLoading } from "./ImageLoading";
+import ImageLoading from "./ImageLoading";
 
 const SWIPE_CLOSE_OFFSET = 75;
 const SWIPE_CLOSE_VELOCITY = 1.75;
@@ -77,6 +77,7 @@ const ImageItem = ({
     doubleTapToZoomEnabled,
     onLongPress: onLongPressHandler,
     delayLongPress,
+    layout
   });
 
   const layoutStyle = React.useMemo(() => ({

@@ -92,6 +92,7 @@ function ImageViewing({
       // @ts-ignore
       imageList?.current?.setNativeProps({ scrollEnabled: !isScaled });
       toggleBarsVisible(!isScaled);
+      setHideStatusBar(false);
     },
     [imageList],
   );
@@ -100,7 +101,7 @@ function ImageViewing({
     return null;
   }
 
-  const handleImageClick = ()=>{
+  const handleImageClick = () => {
     setHideStatusBar(!hideStatusBar);
   }
 
@@ -120,17 +121,15 @@ function ImageViewing({
         onLayout={(e) => {
           setLayout(e.nativeEvent.layout);
         }}
+        onStartShouldSetResponder={() => { handleImageClick(); return true; }}
       >
-        <SafeAreaView
-          style={[
-            styles.header,
-            {
-              backgroundColor: 'transparent',
-            },
-            headerStyle
-          ]}
-        >
-          {hideStatusBar ?
+        {hideStatusBar && typeof HeaderComponent !== "undefined" ?
+          <SafeAreaView
+            style={[
+              styles.header,
+              { backgroundColor: 'transparent' },
+              headerStyle
+            ]} >
             <Animated.View style={[{ transform: headerTransform }]}>
               {typeof HeaderComponent !== "undefined"
                 ? (
@@ -142,8 +141,8 @@ function ImageViewing({
                   <ImageDefaultHeader onRequestClose={onRequestCloseEnhanced} />
                 )}
             </Animated.View>
-            : null}
-        </SafeAreaView>
+          </SafeAreaView>
+          : null}
         <VirtualizedList
           ref={imageList}
           data={images}
@@ -179,7 +178,7 @@ function ImageViewing({
           //@ts-ignore
           keyExtractor={(imageSrc, index) => keyExtractor ? keyExtractor(imageSrc, index) : imageSrc.uri || `${imageSrc}`}
         />
-        {hideStatusBar ?
+        {hideStatusBar && typeof FooterComponent !== "undefined" ?
           <SafeAreaView
             style={[styles.footer, footerStyle]}>
             {typeof FooterComponent !== "undefined" && (

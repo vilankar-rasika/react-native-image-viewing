@@ -33,6 +33,7 @@ function ImageViewing({ images, keyExtractor, imageIndex, visible, onRequestClos
         // @ts-ignore
         (_b = (_a = imageList) === null || _a === void 0 ? void 0 : _a.current) === null || _b === void 0 ? void 0 : _b.setNativeProps({ scrollEnabled: !isScaled });
         toggleBarsVisible(!isScaled);
+        setHideStatusBar(false);
     }, [imageList]);
     if (!visible) {
         return null;
@@ -44,24 +45,22 @@ function ImageViewing({ images, keyExtractor, imageIndex, visible, onRequestClos
       <StatusBarManager presentationStyle={presentationStyle}/>
       <View style={[styles.container, { opacity, backgroundColor }]} onLayout={(e) => {
         setLayout(e.nativeEvent.layout);
-    }}>
+    }} onStartShouldSetResponder={() => { handleImageClick(); return true; }}>
+        {hideStatusBar && typeof HeaderComponent !== "undefined" ?
         <SafeAreaView style={[
-        styles.header,
-        {
-            backgroundColor: 'transparent',
-        },
-        headerStyle
-    ]}>
-          {hideStatusBar ?
-        <Animated.View style={[{ transform: headerTransform }]}>
+            styles.header,
+            { backgroundColor: 'transparent' },
+            headerStyle
+        ]}>
+            <Animated.View style={[{ transform: headerTransform }]}>
               {typeof HeaderComponent !== "undefined"
             ? (React.createElement(HeaderComponent, {
                 imageIndex: currentImageIndex,
             }))
             : (<ImageDefaultHeader onRequestClose={onRequestCloseEnhanced}/>)}
             </Animated.View>
+          </SafeAreaView>
         : null}
-        </SafeAreaView>
         <VirtualizedList ref={imageList} data={images} horizontal pagingEnabled windowSize={2} initialNumToRender={1} maxToRenderPerBatch={1} showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} initialScrollIndex={imageIndex} getItem={(_, index) => images[index]} getItemCount={() => images.length} getItemLayout={(_, index) => ({
         length: layout.width,
         offset: layout.width * index,
@@ -69,7 +68,7 @@ function ImageViewing({ images, keyExtractor, imageIndex, visible, onRequestClos
     })} renderItem={({ item: imageSrc }) => (<ImageItem onZoom={onZoom} imageSrc={imageSrc} onRequestClose={onRequestCloseEnhanced} onLongPress={onLongPress} handleImageClick={handleImageClick} delayLongPress={delayLongPress} swipeToCloseEnabled={swipeToCloseEnabled} doubleTapToZoomEnabled={doubleTapToZoomEnabled} layout={layout ? layout : { width: 0, height: 0 }}/>)} onMomentumScrollEnd={onScroll} 
     //@ts-ignore
     keyExtractor={(imageSrc, index) => keyExtractor ? keyExtractor(imageSrc, index) : imageSrc.uri || `${imageSrc}`}/>
-        {hideStatusBar ?
+        {hideStatusBar && typeof FooterComponent !== "undefined" ?
         <SafeAreaView style={[styles.footer, footerStyle]}>
             {typeof FooterComponent !== "undefined" && (<Animated.View style={[{ transform: footerTransform }]}>
                 {React.createElement(FooterComponent, {

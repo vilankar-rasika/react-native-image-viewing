@@ -6,10 +6,9 @@
  *
  */
 import React, { useCallback, useEffect, useState } from "react";
-import { Animated, StyleSheet, View, VirtualizedList, Modal, SafeAreaView } from "react-native";
+import { Animated, StyleSheet, View, VirtualizedList, Modal, SafeAreaView, StatusBar } from "react-native";
 import ImageItem from "./components/ImageItem/ImageItem";
 import ImageDefaultHeader from "./components/ImageDefaultHeader";
-import StatusBarManager from "./components/StatusBarManager";
 import useAnimatedComponents from "./hooks/useAnimatedComponents";
 import useImageIndexChange from "./hooks/useImageIndexChange";
 import useRequestClose from "./hooks/useRequestClose";
@@ -42,7 +41,8 @@ function ImageViewing({ images, keyExtractor, imageIndex, visible, onRequestClos
         setHideStatusBar(!hideStatusBar);
     };
     return (<Modal transparent={presentationStyle === "overFullScreen"} visible={visible} presentationStyle={presentationStyle} animationType={animationType} onRequestClose={onRequestCloseEnhanced} supportedOrientations={["portrait", "portrait-upside-down", "landscape", "landscape-left", "landscape-right"]} hardwareAccelerated>
-      <StatusBarManager presentationStyle={presentationStyle}/>
+      
+      <StatusBar translucent backgroundColor="transparent" hidden/>
       <View style={[styles.container, { opacity, backgroundColor }]} onLayout={(e) => {
         setLayout(e.nativeEvent.layout);
     }} onStartShouldSetResponder={() => { handleImageClick(); return true; }}>
